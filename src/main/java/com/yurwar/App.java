@@ -1,6 +1,8 @@
 package com.yurwar;
 
 
+import java.util.Arrays;
+
 public class App {
     private final ArrayGenerator generator;
 
@@ -14,21 +16,35 @@ public class App {
 
         int numberOfJobs = 2;
         int vectorsSize = 10000000;
+        int iterations = 5;
 
-        for (int i = 0; i < 10; i++) {
+        long sequentialDuration = 0;
+        long parallelDuration = 0;
+
+        for (int i = 0; i < iterations; i++) {
             int[] v1 = app.getGenerator().getIntArray(vectorsSize);
             int[] v2 = app.getGenerator().getIntArray(vectorsSize);
 
-            CalculationResult parallelCalcResult = app.sumVectorsParallel(v1, v2, numberOfJobs);
+            System.out.println("Vectors initialized");
+
             CalculationResult sequentialCalcResult = app.sumVectors(v1, v2);
+            CalculationResult parallelCalcResult = app.sumVectorsParallel(v1, v2, numberOfJobs);
 
-            double acceleration = (double) sequentialCalcResult.getCalculationDuration() /
-                    parallelCalcResult.getCalculationDuration();
+            sequentialDuration += sequentialCalcResult.getCalculationDuration();
+            parallelDuration += parallelCalcResult.getCalculationDuration();
 
-            System.out.println("Acceleration of parallel algorithm: " + acceleration);
-            System.out.println("Efficiency of parallel algorithm: " + acceleration / numberOfJobs);
             System.out.println();
         }
+
+        double averageSequentialDuration = (double) sequentialDuration / iterations;
+        double averageParallelDuration = (double) parallelDuration / iterations;
+
+        double acceleration = averageSequentialDuration / averageParallelDuration;
+
+        System.out.println("Number of iterations: " + iterations);
+        System.out.println("Acceleration of parallel algorithm: " + acceleration);
+        System.out.println("Efficiency of parallel algorithm: " + acceleration / numberOfJobs);
+        System.out.println();
     }
 
     public CalculationResult sumVectors(int[] v1, int[] v2) {
@@ -37,17 +53,22 @@ public class App {
 
     public CalculationResult sumVectorsParallel(int[] v1, int[] v2, int numberOfJobs) {
         int vectorSize = v1.length;
-        int[] resV = new int[vectorSize];
         int chunkSize = Math.floorDiv(vectorSize, numberOfJobs);
 
         long startTime = System.currentTimeMillis();
 
-        Thread[] adderThreads = new Thread[numberOfJobs];
+        VectorAdderThread[] adderThreads = new VectorAdderThread[numberOfJobs];
         for (int i = 0; i < numberOfJobs; i++) {
             int startIndex = i * chunkSize;
-            adderThreads[i] = new Thread(
-                    new VectorAdderRunnable(v1, v2, resV, chunkSize, startIndex));
+
+            int min = Math.min(startIndex + chunkSize, v1.length);
+
+            int[] innerV1 = Arrays.copyOfRange(v1, startIndex, min);
+            int[] innerV2 = Arrays.copyOfRange(v2, startIndex, min);
+
+            adderThreads[i] = new VectorAdderThread(innerV1, innerV2);
         }
+
 
         for (Thread adderThread : adderThreads) {
             adderThread.start();
@@ -62,6 +83,10 @@ public class App {
         }
 
         long calculationDuration = System.currentTimeMillis() - startTime;
+
+        int[] resV = Arrays.stream(adderThreads)
+                .flatMapToInt(thread -> Arrays.stream(thread.getResult()))
+                .toArray();
 
         System.out.printf("Adding of vectors with size %d on %d threads finished in %d ms%n",
                 vectorSize, numberOfJobs, calculationDuration);

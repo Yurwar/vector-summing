@@ -24,14 +24,14 @@ public class AppTest {
 
     @Test
     public void shouldReturnSumOfTwoVectorsWhenCalculateParallel() {
-        int[] v1 = {1, -2, 5, 6, 8, 10};
-        int[] v2 = {0, 3, 7, 2, 4, 11};
+        int[] v1 = {1, -2, 5, 6, 8, 10, 1, -2, 5, 6, 8, 10};
+        int[] v2 = {0, 3, 7, 2, 4, 11, 0, 3, 7, 2, 4, 11};
 
         int numberOfJobs = 4;
         CalculationResult calculationResult = testedInstance.sumVectorsParallel(v1, v2, numberOfJobs);
 
         int[] actual = calculationResult.getResV();
-        int[] expected = {1, 1, 12, 8, 12, 21};
+        int[] expected = {1, 1, 12, 8, 12, 21, 1, 1, 12, 8, 12, 21};
 
         assertArrayEquals(expected, actual);
     }
