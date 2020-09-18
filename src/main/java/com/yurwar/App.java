@@ -7,7 +7,6 @@ public class App {
     private final ArrayGenerator generator;
 
     public App() {
-
         generator = new ArrayGenerator();
     }
 
@@ -16,32 +15,33 @@ public class App {
 
         int numberOfJobs = 2;
         int vectorsSize = 10000000;
-        int iterations = 5;
+        int iterations = 10;
 
         long sequentialDuration = 0;
         long parallelDuration = 0;
 
+        int[] v1 = app.getGenerator().getIntArray(vectorsSize);
+        int[] v2 = app.getGenerator().getIntArray(vectorsSize);
+
+        System.out.println("Vectors initialized");
+
         for (int i = 0; i < iterations; i++) {
-            int[] v1 = app.getGenerator().getIntArray(vectorsSize);
-            int[] v2 = app.getGenerator().getIntArray(vectorsSize);
-
-            System.out.println("Vectors initialized");
-
             CalculationResult sequentialCalcResult = app.sumVectors(v1, v2);
             CalculationResult parallelCalcResult = app.sumVectorsParallel(v1, v2, numberOfJobs);
 
             sequentialDuration += sequentialCalcResult.getCalculationDuration();
             parallelDuration += parallelCalcResult.getCalculationDuration();
-
-            System.out.println();
         }
+
+        System.out.println("Calculation finished with " + iterations + " iterations");
 
         double averageSequentialDuration = (double) sequentialDuration / iterations;
         double averageParallelDuration = (double) parallelDuration / iterations;
 
         double acceleration = averageSequentialDuration / averageParallelDuration;
 
-        System.out.println("Number of iterations: " + iterations);
+        System.out.println("Number of jobs: " + numberOfJobs);
+        System.out.println("Vectors size: " + vectorsSize);
         System.out.println("Acceleration of parallel algorithm: " + acceleration);
         System.out.println("Efficiency of parallel algorithm: " + acceleration / numberOfJobs);
         System.out.println();
@@ -87,9 +87,6 @@ public class App {
         int[] resV = Arrays.stream(adderThreads)
                 .flatMapToInt(thread -> Arrays.stream(thread.getResult()))
                 .toArray();
-
-        System.out.printf("Adding of vectors with size %d on %d threads finished in %d ms%n",
-                vectorSize, numberOfJobs, calculationDuration);
 
         return new CalculationResult(resV, calculationDuration);
     }
