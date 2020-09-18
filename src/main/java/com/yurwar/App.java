@@ -5,6 +5,9 @@ import java.util.Arrays;
 
 public class App {
     private final ArrayGenerator generator;
+    private static final int NUMBER_OF_JOBS = 2;
+    private static final int VECTORS_SIZE = 10000000;
+    private static final int ITERATIONS = 10;
 
     public App() {
         generator = new ArrayGenerator();
@@ -13,37 +16,33 @@ public class App {
     public static void main(String[] args) {
         App app = new App();
 
-        int numberOfJobs = 2;
-        int vectorsSize = 10000000;
-        int iterations = 10;
-
         long sequentialDuration = 0;
         long parallelDuration = 0;
 
-        int[] v1 = app.getGenerator().getIntArray(vectorsSize);
-        int[] v2 = app.getGenerator().getIntArray(vectorsSize);
+        int[] v1 = app.getGenerator().getIntArray(VECTORS_SIZE);
+        int[] v2 = app.getGenerator().getIntArray(VECTORS_SIZE);
 
         System.out.println("Vectors initialized");
 
-        for (int i = 0; i < iterations; i++) {
+        for (int i = 0; i < ITERATIONS; i++) {
             CalculationResult sequentialCalcResult = app.sumVectors(v1, v2);
-            CalculationResult parallelCalcResult = app.sumVectorsParallel(v1, v2, numberOfJobs);
+            CalculationResult parallelCalcResult = app.sumVectorsParallel(v1, v2, NUMBER_OF_JOBS);
 
             sequentialDuration += sequentialCalcResult.getCalculationDuration();
             parallelDuration += parallelCalcResult.getCalculationDuration();
         }
 
-        System.out.println("Calculation finished with " + iterations + " iterations");
+        System.out.println("Calculation finished with " + ITERATIONS + " iterations");
 
-        double averageSequentialDuration = (double) sequentialDuration / iterations;
-        double averageParallelDuration = (double) parallelDuration / iterations;
+        double averageSequentialDuration = (double) sequentialDuration / ITERATIONS;
+        double averageParallelDuration = (double) parallelDuration / ITERATIONS;
 
         double acceleration = averageSequentialDuration / averageParallelDuration;
 
-        System.out.println("Number of jobs: " + numberOfJobs);
-        System.out.println("Vectors size: " + vectorsSize);
+        System.out.println("Number of jobs: " + NUMBER_OF_JOBS);
+        System.out.println("Vectors size: " + VECTORS_SIZE);
         System.out.println("Acceleration of parallel algorithm: " + acceleration);
-        System.out.println("Efficiency of parallel algorithm: " + acceleration / numberOfJobs);
+        System.out.println("Efficiency of parallel algorithm: " + acceleration / NUMBER_OF_JOBS);
         System.out.println();
     }
 
